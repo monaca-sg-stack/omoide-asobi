@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+
+  ::selection {
+    @apply bg-sunset/30 text-ink;
+  }
+}
+
+@layer utilities {
+  .note-lines {
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 27px,
+      rgba(196, 168, 130, 0.25) 27px,
+      rgba(196, 168, 130, 0.25) 28px
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
