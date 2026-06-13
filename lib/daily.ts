@@ -1,4 +1,4 @@
-import { questions } from "@/lib/questions";
+import { questions, isEdgeTone } from "@/lib/questions";
 import type { Question } from "@/types/question";
 import type { DailySession } from "@/types/session";
 
@@ -53,15 +53,25 @@ function pickFromPool(
   date: string,
   slot: number,
   used: Set<string>,
+  avoidEdge = false,
 ): string | null {
-  const candidates = (pool.length > 0 ? pool : fallback).filter(
+  let candidates = (pool.length > 0 ? pool : fallback).filter(
     (q) => !used.has(q.id),
   );
+  if (avoidEdge) {
+    const soft = candidates.filter((q) => !isEdgeTone(q.emotionalTone));
+    if (soft.length > 0) candidates = soft;
+  }
   if (candidates.length === 0) return null;
 
   const seed = hashDate(date);
   const index = (seed + slot * 11) % candidates.length;
   return candidates[index].id;
+}
+
+function firstQuestionIsEdge(ids: string[]): boolean {
+  const q = questions.find((item) => item.id === ids[0]);
+  return q ? isEdgeTone(q.emotionalTone) : false;
 }
 
 export type DailyPick = {
@@ -98,7 +108,7 @@ export function pickDailyQuestions(
       ids.push(q3);
       used.add(q3);
     }
-    const q2 = pickFromPool(pool2, all2, date, 1, used);
+    const q2 = pickFromPool(pool2, all2, date, 1, used, firstQuestionIsEdge(ids));
     if (q2) ids.push(q2);
     if (ids.length === 0) {
       ids.push(all3[0]?.id ?? all2[0]?.id ?? questions[0].id);
@@ -112,7 +122,7 @@ export function pickDailyQuestions(
     ids.push(q1);
     used.add(q1);
   }
-  const q2 = pickFromPool(pool2, all2, date, 1, used);
+  const q2 = pickFromPool(pool2, all2, date, 1, used, firstQuestionIsEdge(ids));
   if (q2) ids.push(q2);
 
   if (ids.length === 0) {
